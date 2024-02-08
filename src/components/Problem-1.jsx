@@ -24,7 +24,7 @@ const Problem1 = () => {
     };
 
     //Set data from user input
-    const [inputData, setInputData] = useState({ id:'', name: '', status: '' })
+    const [inputData, setInputData] = useState({name: '', status: '' })
 
     // Change form data of item & status
     const handleChange = (e) => {
@@ -41,6 +41,7 @@ const Problem1 = () => {
         e.preventDefault();
         const updatedData = [...currentData, inputData];
         setCurrentData(updatedData);
+        // setInputData({ id: "", name: "", status: "" });
     }
 
 
