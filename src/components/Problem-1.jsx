@@ -6,7 +6,7 @@ const Problem1 = () => {
     // changing filter-status
     const [show, setShow] = useState('all');
 
-    // load data
+    // load placeholder data
     const [currentData, setCurrentData] = useState(fakeData)
 
     // Set status
@@ -23,7 +23,7 @@ const Problem1 = () => {
 
     };
 
-    //set data from user input
+    //Set data from user input
     const [inputData, setInputData] = useState({ id:'', name: '', status: '' })
 
     // Change form data of item & status
@@ -36,7 +36,7 @@ const Problem1 = () => {
         }
     }
 
-    // add input data to the current dataset/fakedata
+    // Add input data to the current dataset/fakedata
     const handleSubmit = (e) => {
         e.preventDefault();
         const updatedData = [...currentData, inputData];
