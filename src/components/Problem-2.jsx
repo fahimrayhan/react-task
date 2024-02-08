@@ -24,129 +24,190 @@ const reducer = (state, action) => {
 }
 
 const Problem2 = () => {
+  const [modalState, dispatch] = useReducer(reducer, initialState);
+  const [dataToFetch, setDataToFetch] = useState();
+  const [checkbox, setCheckbox] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [page, setPage] = useState(2);
+  const [data, setData] = useState([]);
+  const location = useLocation();
+  const navigate = useNavigate();
+  const modalBodyRef = useRef(null);
 
-    const [modalState, dispatch] = useReducer(reducer, initialState)
-    const [dataToFetch, setDataToFetch] = useState();
-    const [checkbox, setCheckbox] = useState(false)
-    const [isLoading, setIsLoading] = useState(false)
-    const [page, setPage] = useState(2)
-    const [data, setData] = useState([])
-    const location = useLocation();
-    const navigate = useNavigate()
-    const modalBodyRef = useRef(null);
+  const [selectedContact, setSelectedContact] = useState(null);
 
-    // Handle modal show one either with All Contacts or US 
-    const handleModalShowOne = (e) => {
-        const { textContent } = e.target
-        setDataToFetch(stringReplaceSpaceWithDash(textContent))
+  // Handle modal show one either with All Contacts or US
+  const handleModalShowOne = (e) => {
+    const { textContent } = e.target;
+    setDataToFetch(stringReplaceSpaceWithDash(textContent));
 
-        if (location.pathname !== '/' && page !== 2) {
-            setPage(2)
-        }
-
-        if (location.pathname === '/') {
-            navigate(location.pathname + '/' + stringReplaceSpaceWithDash(textContent))
-        } else {
-            navigate(stringReplaceSpaceWithDash(textContent))
-        }
-
-        dispatch({ type: 'showModalOne', value: true })
-
+    if (location.pathname !== "/" && page !== 2) {
+      setPage(2);
     }
 
-    // Handle modal close one either with All Contacts or US 
-    const handleModalCloseOne = () => {
-        navigate('/problem-2')
-        dispatch({ type: 'showModalOne', value: false })
+    if (location.pathname === "/") {
+      navigate(
+        location.pathname + "/" + stringReplaceSpaceWithDash(textContent)
+      );
+    } else {
+      navigate(stringReplaceSpaceWithDash(textContent));
     }
 
+    dispatch({ type: "showModalOne", value: true });
+  };
 
-    // Fetch more data
-    const fetchData = useCallback(async () => {
-        if (isLoading) return;
-        setIsLoading(true);
+  // Model Show/Hide handler
 
-        try {
-            const response = await fetch(`${import.meta.env.VITE_API_URL}${dataToFetch === 'all-contacts' ? 'contacts' : 'country-contacts/United%20States'}/?page=${page}`);
-            const data = await response.json();
+  // Handle modal close one either with All Contacts or US
+  const handleModalCloseOne = () => {
+    navigate("/problem-2");
+    dispatch({ type: "showModalOne", value: false });
+  };
 
-            setData((prevData) => [...prevData, ...data?.results]);
-            if (data?.next) {
-                setPage((prevPage) => prevPage + 1);
-            } else {
-                setIsLoading(false);
-            }
-        } catch (error) {
-            console.error(error);
-            setIsLoading(false);
-        }
-    }, [isLoading, page]);
+  // Modal Two close handler to reset the selected contact
+  const handleCloseModalTwo = () => {
+    setSelectedContact(null);
+    dispatch({ type: "showModalTwo", value: false });
+  };
 
+  // Row click handler to set the selected contact
+  const handleContactClick = (contact) => {
+    setSelectedContact(contact);
+    dispatch({ type: "showModalTwo", value: true });
+  };
 
-    // Fetch data infinite with fetch data function whenever reach to the bottom
-    useEffect(() => {
-        const observer = new IntersectionObserver((entries) => {
-            const target = entries[0];
-            if (target.isIntersecting) {
-                fetchData();
-            }
-        });
+  // Fetch more data
+  const fetchData = useCallback(async () => {
+    if (isLoading) return;
+    setIsLoading(true);
 
-        if (modalBodyRef?.current) {
-            observer.observe(modalBodyRef.current);
-        }
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_API_URL}${
+          dataToFetch === "all-contacts"
+            ? "contacts"
+            : "country-contacts/United%20States"
+        }/?page=${page}`
+      );
+      const data = await response.json();
 
-        return () => {
-            if (modalBodyRef?.current) {
-                observer.unobserve(modalBodyRef.current);
-            }
-        };
-    }, [dataToFetch, fetchData])
+      setData((prevData) => [...prevData, ...data?.results]);
+      if (data?.next) {
+        setPage((prevPage) => prevPage + 1);
+      } else {
+        setIsLoading(false);
+      }
+    } catch (error) {
+      console.error(error);
+      setIsLoading(false);
+    }
+  }, [isLoading, page]);
 
+  // Fetch data infinite with fetch data function whenever reach to the bottom
+  useEffect(() => {
+    const observer = new IntersectionObserver((entries) => {
+      const target = entries[0];
+      if (target.isIntersecting) {
+        fetchData();
+      }
+    });
 
-    // Fetch data for the first time
-    useEffect(() => {
-        const getData = async () => {
-            setIsLoading(true);
+    if (modalBodyRef?.current) {
+      observer.observe(modalBodyRef.current);
+    }
 
-            try {
-                const response = await fetch(`${import.meta.env.VITE_API_URL}${dataToFetch === 'all-contacts' ? 'contacts' : 'country-contacts/United%20States'}/?page=${page}`);
-                const data = await response.json();
+    return () => {
+      if (modalBodyRef?.current) {
+        observer.unobserve(modalBodyRef.current);
+      }
+    };
+  }, [dataToFetch, fetchData]);
 
-                setData(data?.results);
-            } catch (error) {
-                console.error(error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+  // Fetch data for the first time
+  useEffect(() => {
+    const getData = async () => {
+      setIsLoading(true);
 
-        getData();
-    }, [dataToFetch]);
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL}${
+            dataToFetch === "all-contacts"
+              ? "contacts"
+              : "country-contacts/United%20States"
+          }/?page=${page}`
+        );
+        const data = await response.json();
 
-    return (
+        setData(data?.results);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
 
-        <div className="container">
-            <div className="row justify-content-center mt-5">
-                <h4 className='text-center text-uppercase mb-5'>Problem-2</h4>
+    getData();
+  }, [dataToFetch]);
 
-                <div className="d-flex justify-content-center gap-3">
-                    <button className="btn btn-lg btn-outline-primary" type="button" onClick={(e) => handleModalShowOne(e)}>All Contacts</button>
-                    <button className="btn btn-lg btn-outline-warning" type="button" onClick={(e) => handleModalShowOne(e)}>US Contacts</button>
-                </div>
+  return (
+    <div className="container">
+      <div className="row justify-content-center mt-5">
+        <h4 className="text-center text-uppercase mb-5">Problem-2</h4>
 
-                <FirstModal modalState={modalState} data={data} checkbox={checkbox} setCheckbox={setCheckbox} isLoading={isLoading} setIsLoading={setIsLoading} dispatch={dispatch} handleModalShowOne={handleModalShowOne} handleModalCloseOne={handleModalCloseOne} ref={modalBodyRef} />
-
-
-                <Modal show={modalState.showModal2} size="md" centered>
-                    <Modal.Header>
-                        <button className={`btn btn-lg modalBtnC`} type="button" onClick={() => dispatch({ type: 'showModalTwo', value: false })}>Close</button>
-                    </Modal.Header>
-                    <Modal.Body>I'm Details of Contact </Modal.Body>
-                </Modal>
-            </div>
+        <div className="d-flex justify-content-center gap-3">
+          <button
+            className="btn btn-lg btn-outline-primary"
+            type="button"
+            onClick={(e) => handleModalShowOne(e)}
+          >
+            All Contacts
+          </button>
+          <button
+            className="btn btn-lg btn-outline-warning"
+            type="button"
+            onClick={(e) => handleModalShowOne(e)}
+          >
+            US Contacts
+          </button>
         </div>
-    );
+
+        <FirstModal
+          modalState={modalState}
+          data={data}
+          checkbox={checkbox}
+          setCheckbox={setCheckbox}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
+          dispatch={dispatch}
+          handleModalShowOne={handleModalShowOne}
+          handleModalCloseOne={handleModalCloseOne}
+          handleContactClick={handleContactClick}
+          ref={modalBodyRef}
+        />
+
+        <Modal show={modalState.showModal2} size="md" centered>
+          <Modal.Header>
+            <button
+              className={`btn btn-lg modalBtnC`}
+              type="button"
+              onClick={() => handleCloseModalTwo()}
+            >
+              Close
+            </button>
+          </Modal.Header>
+          <Modal.Body>
+            {selectedContact && (
+              <>
+                <p>Contact Details:</p>
+                <p>Phone: {selectedContact.phone}</p>
+                <p>Country: {selectedContact.country.name}</p>
+              </>
+            )}
+          </Modal.Body>
+        </Modal>
+      </div>
+    </div>
+  );
 };
 
 export default Problem2;
